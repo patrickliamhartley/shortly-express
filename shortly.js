@@ -13,11 +13,11 @@ var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
 
-var user1 = new User({
-  username: 'MrCool',
-  password: 'abc123',
-  loggedIn: false
-});
+// var user1 = new User({
+//   username: 'MrCool',
+//   password: 'abc123',
+//   loggedIn: false
+// });
 
 var app = express();
 
@@ -57,7 +57,7 @@ app.get('/signup', function(req, res) {
   res.render('signup');
 });
 
-app.get('/links',
+app.get('/links', util.authenticate,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
@@ -100,7 +100,30 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 app.post('/login', function(req, res) {
-  res.send('Thanks for logging in!');
+  // if username/password matches
+  // new User({
+  //   username: req.body.username
+  // }).fetch().then(function(found)){
+  //   if (found)
+  if (Users.findWhere({
+    username: req.body.username,
+    password: req.body.password
+  })) {
+    req.session.username = req.body.username;
+    req.session.password = req.body.password;
+    // open a live session
+    res.redirect('/index');
+  } else {
+    console.log('username or password not found');
+    res.redirect('/login');
+  }
+
+    // then they are logged in
+  
+  // else, bad username/password
+
+
+
 });
 
 // app.post('/signup', function (req, res) {
@@ -127,7 +150,9 @@ app.post('/signup', function (req, res) {
         password: req.body.password
       })
       .then(function(newUser) {
-        res.redirect('/login');
+        req.session.username = req.body.username;
+        req.session.password = req.body.password;
+        res.redirect('/');
       });
     }
   });
@@ -168,4 +193,4 @@ app.get('/*', function(req, res) {
 console.log('Shortly is listening on 4568');
 app.listen(4568);
 
-module.exports.user1 = user1;
+
