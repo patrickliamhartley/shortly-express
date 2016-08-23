@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 
 
 var db = require('./app/config');
@@ -10,6 +11,12 @@ var User = require('./app/models/user');
 var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
+
+var user1 = new User({
+  username: 'MrCool',
+  password: 'abc123',
+  loggedIn: false
+});
 
 var app = express();
 
@@ -23,8 +30,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 
-app.get('/', 
+app.get('/', util.authenticate, 
 function(req, res) {
+  console.log('inside');
   res.render('index');
 });
 
@@ -75,8 +83,28 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+// app.post('/login');
 
+// app.post('/signup', function (req, res) {
+//   console.log('---From Post /signup: ', req.body);
+// });
 
+app.post('/signup', function (req, res) {
+
+  var user = new User({
+    username: req.body.username,
+    password: req.body.password,
+    loggedIn: true
+  });
+  user.save({});
+  user1 = user;
+  console.log("login info", user);
+  res.cookie('UserAccount', user);
+  
+
+  res.redirect('index');
+  res.end();
+});
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
@@ -105,3 +133,5 @@ app.get('/*', function(req, res) {
 
 console.log('Shortly is listening on 4568');
 app.listen(4568);
+
+module.exports.user1 = user1;
