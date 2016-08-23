@@ -105,18 +105,20 @@ app.post('/login', function(req, res) {
   //   username: req.body.username
   // }).fetch().then(function(found)){
   //   if (found)
-  if (Users.findWhere({
-    username: req.body.username,
-    password: req.body.password
-  })) {
-    req.session.username = req.body.username;
-    req.session.password = req.body.password;
-    // open a live session
-    res.redirect('/index');
-  } else {
-    console.log('username or password not found');
-    res.redirect('/login');
-  }
+  Users.reset().fetch().then(function() {
+    if (Users.findWhere({
+      username: req.body.username,
+      password: req.body.password
+    })) {
+      req.session.username = req.body.username;
+      req.session.password = req.body.password;
+      // open a live session
+      res.redirect('/');
+    } else {
+      console.log('username or password not found');
+      res.redirect('/login');
+    }
+  });  
 
     // then they are logged in
   
