@@ -13,12 +13,6 @@ var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
 
-// var user1 = new User({
-//   username: 'MrCool',
-//   password: 'abc123',
-//   loggedIn: false
-// });
-
 var app = express();
 
 app.set('views', __dirname + '/views');
@@ -29,13 +23,13 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+
 app.use(session({
   name: 'shortlySession',
   secret: 'applejacks dont taste like apples',
   saveUninitialized: true,
   resave: false,
-  username: null,
-  password: null
+  loggedIn: false
 }));
 
 app.get('/', util.authenticate, 
@@ -100,18 +94,13 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 app.post('/login', function(req, res) {
-  // if username/password matches
-  // new User({
-  //   username: req.body.username
-  // }).fetch().then(function(found)){
-  //   if (found)
+
   Users.reset().fetch().then(function() {
     if (Users.findWhere({
       username: req.body.username,
       password: req.body.password
     })) {
-      req.session.username = req.body.username;
-      req.session.password = req.body.password;
+      req.session.loggedIn = true;
       // open a live session
       res.redirect('/');
     } else {
@@ -120,19 +109,7 @@ app.post('/login', function(req, res) {
     }
   });  
 
-    // then they are logged in
-  
-  // else, bad username/password
-
-
-
 });
-
-// app.post('/signup', function (req, res) {
-//   console.log('---From Post /signup: ', req.body);
-// });
-
-
 
 app.post('/signup', function (req, res) {
 
@@ -144,27 +121,17 @@ app.post('/signup', function (req, res) {
       console.log('Sorry,' + req.body.username + ', you are already a user');
       res.redirect('/signup');
     } else {
-      // if (err) {
-      //   console.log('ERROR, ERROR, SYSTEM FAILURE, ABORT', err);
-      // }
       Users.create({
         username: req.body.username,
         password: req.body.password
       })
       .then(function(newUser) {
-        req.session.username = req.body.username;
-        req.session.password = req.body.password;
+        req.session.loggedIn = true; 
         res.redirect('/');
       });
     }
   });
 
-
-  // user.save({});
-  // user1 = user;
-  
-
-  // res.redirect('/login');
 });
 
 /************************************************************/
