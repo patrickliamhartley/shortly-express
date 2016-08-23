@@ -2,7 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
+var session = require('express-session');
+// var cookieParser = require('cookie-parser');
 
 
 var db = require('./app/config');
@@ -28,7 +29,14 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-
+app.use(session({
+  name: 'shortlySession',
+  secret: 'applejacks dont taste like apples',
+  saveUninitialized: true,
+  resave: false,
+  username: null,
+  password: null
+}));
 
 app.get('/', util.authenticate, 
 function(req, res) {
@@ -36,12 +44,20 @@ function(req, res) {
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+
+app.get('/create', util.authenticate, 
 function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
+
+app.get('/links',
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
@@ -83,27 +99,45 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-// app.post('/login');
+app.post('/login', function(req, res) {
+  res.send('Thanks for logging in!');
+});
 
 // app.post('/signup', function (req, res) {
 //   console.log('---From Post /signup: ', req.body);
 // });
 
+
+
 app.post('/signup', function (req, res) {
 
-  var user = new User({
+  new User({
     username: req.body.username,
     password: req.body.password,
-    loggedIn: true
+  }).fetch().then(function(found) {
+    if (found) {
+      console.log('Sorry,' + req.body.username + ', you are already a user');
+      res.redirect('/signup');
+    } else {
+      // if (err) {
+      //   console.log('ERROR, ERROR, SYSTEM FAILURE, ABORT', err);
+      // }
+      Users.create({
+        username: req.body.username,
+        password: req.body.password
+      })
+      .then(function(newUser) {
+        res.redirect('/login');
+      });
+    }
   });
-  user.save({});
-  user1 = user;
-  console.log("login info", user);
-  res.cookie('UserAccount', user);
+
+
+  // user.save({});
+  // user1 = user;
   
 
-  res.redirect('index');
-  res.end();
+  // res.redirect('/login');
 });
 
 /************************************************************/
