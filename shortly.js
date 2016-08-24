@@ -96,19 +96,27 @@ function(req, res) {
 app.post('/login', function(req, res) {
 
   Users.reset().fetch().then(function() {
-    if (Users.findWhere({
-      username: req.body.username,
-      password: req.body.password
-    })) {
-      req.session.loggedIn = true;
-      // open a live session
-      res.redirect('/');
+    var tempuser = Users.findWhere({
+      username: req.body.username
+    });
+    if (tempuser) {
+      tempuser.verify(req.body.password, function (success) {
+        if (success) {
+          req.session.loggedIn = true;
+          // open a live session
+          res.redirect('/');
+        } else {
+          console.log('username or password not found');
+          res.redirect('/login');
+        }
+      });  
     } else {
       console.log('username or password not found');
       res.redirect('/login');
-    }
-  });  
-
+      
+    }  
+  });
+  
 });
 
 app.post('/signup', function (req, res) {
@@ -121,6 +129,7 @@ app.post('/signup', function (req, res) {
       console.log('Sorry,' + req.body.username + ', you are already a user');
       res.redirect('/signup');
     } else {
+
       Users.create({
         username: req.body.username,
         password: req.body.password
