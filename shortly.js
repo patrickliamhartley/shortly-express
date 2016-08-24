@@ -80,7 +80,8 @@ function(req, res) {
         Links.create({
           url: uri,
           title: title,
-          baseUrl: req.headers.origin
+          baseUrl: req.headers.origin,
+          usersId: req.session.usersId
         })
         .then(function(newLink) {
           res.status(200).send(newLink);
@@ -103,6 +104,8 @@ app.post('/login', function(req, res) {
       tempuser.verify(req.body.password, function (success) {
         if (success) {
           req.session.loggedIn = true;
+          req.session.username = req.body.username;
+          req.session.usersId = tempuser.get('id');
           // open a live session
           res.redirect('/');
         } else {
@@ -135,7 +138,9 @@ app.post('/signup', function (req, res) {
         password: req.body.password
       })
       .then(function(newUser) {
+        req.session.username = req.body.username;
         req.session.loggedIn = true; 
+        req.session.usersId = newUser.id;
         res.redirect('/');
       });
     }

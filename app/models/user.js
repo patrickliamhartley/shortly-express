@@ -9,9 +9,9 @@ var User = db.Model.extend({
   defaults: {
     username: null,
     password: null,
-    loggedIn: false
+    id: null
   },
-  users: function() {
+  link: function() {
     return this.hasMany(Link);
   },
 
